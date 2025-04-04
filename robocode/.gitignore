@@ -1,1 +1,36 @@
-/target/
+# Archivos de compilación
+*.class
+
+# Archivos de empaquetado
+*.jar
+*.war
+*.ear
+
+# Archivos de configuración de IDEs (IntelliJ IDEA, Eclipse, NetBeans, etc.)
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Archivos generados por Maven
+target/
+.mvn/
+
+# Archivos generados por Gradle
+.gradle/
+build/
+
+# Archivos de log
+*.log
+
+# Archivos temporales
+*.tmp
+*.swp
+*.bak
+*.DS_Store
+
+# Archivos de configuración específicos del sistema operativo
+Thumbs.db
+Desktop.ini
+
