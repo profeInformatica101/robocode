@@ -1,47 +1,49 @@
 package com.robocode;
 
-import java.io.File;
-
-import robocode.BattleResults;
 import robocode.control.*;
 import robocode.control.events.BattleAdaptor;
 import robocode.control.events.BattleCompletedEvent;
 
-/**
- * Clase principal para ejecutar una batalla Robocode desde código Java.
- */
 public class App {
     public static void main(String[] args) {
-        // 📁 Ruta Robocode
+        if (args.length < 2) {
+            System.err.println("❌ Debes especificar al menos 2 bots como argumentos.");
+            System.exit(1);
+        }
+
         String robocodeHome = System.getProperty("user.home") + "/robocode";
-        File robocodeDir = new File(robocodeHome);
+        RobocodeEngine engine = new RobocodeEngine(new java.io.File(robocodeHome));
+        engine.setVisible(true); // Mostrar ventana gráfica (cambiar a false si se desea headless)
 
-        // 🧠 Inicializa motor de Robocode
-        RobocodeEngine engine = new RobocodeEngine(robocodeDir);
-
-        // 💡 Comprobar si hay entorno gráfico
-        boolean guiDisponible = System.getenv("DISPLAY") != null;
-        engine.setVisible(guiDisponible);
-
-        // 📊 Listener para mostrar resultados
+        // Escuchar evento de finalización de batalla
         engine.addBattleListener(new BattleAdaptor() {
             @Override
-            public void onBattleCompleted(BattleCompletedEvent e) {
+            public void onBattleCompleted(BattleCompletedEvent event) {
                 System.out.println("🔚 Batalla terminada.");
-                for (BattleResults result : e.getSortedResults()) {
+                for (robocode.BattleResults result : event.getSortedResults()) {
                     System.out.printf("🤖 %s - %d puntos%n", result.getTeamLeaderName(), result.getScore());
                 }
-                engine.close();
-                System.exit(0);
             }
         });
 
-        // ⚙️ Configuración de la batalla
-        RobotSpecification[] robots = engine.getLocalRepository("com.robocode.bot.MiPrimerBot,sample.SpinBot");
-        BattlefieldSpecification battlefield = new BattlefieldSpecification(800, 600);
-        BattleSpecification battle = new BattleSpecification(3, battlefield, robots);
+        // Construir lista de bots
+        String bots = String.join(",", args);
+        RobotSpecification[] selectedRobots = engine.getLocalRepository(bots);
 
-        // 🚀 Ejecutar batalla
-        engine.runBattle(battle, true);
+        if (selectedRobots.length < 2) {
+            System.err.println("❌ No se encontraron suficientes bots válidos.");
+            engine.close();
+            System.exit(2);
+        }
+
+        // Crear la batalla
+        int rounds = 5;
+        BattlefieldSpecification battlefield = new BattlefieldSpecification(800, 600);
+
+        BattleSpecification spec = new BattleSpecification(rounds, battlefield, selectedRobots);
+
+        // Ejecutar
+        engine.runBattle(spec, true);
+        engine.close();
     }
 }
