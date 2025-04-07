@@ -28,7 +28,6 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
 		<attributes>
-			<attribute name="module" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
@@ -37,6 +36,10 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/home/desarrolloweb/Documents/git-projects/robocode-practica/robocode/lib/robocode-1.9.5.5-setup.jar"/>
+	<classpathentry kind="lib" path="/home/desarrolloweb/Documents/git-projects/robocode-practica/robocode/lib/robocode-1.9.5.5-setup.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
