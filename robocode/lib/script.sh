@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ruta al archivo robocode.jar
-ROBOCODE_JAR_PATH="./lib/robocode.jar"
+ROBOCODE_JAR_PATH="robocode-1.9.5.5-setup.jar"
 VERSION="1.9.5.5"
 
 echo "🔍 Verificando existencia de $ROBOCODE_JAR_PATH..."
