@@ -4,7 +4,9 @@
 ROBOCODE_HOME="$HOME/robocode"
 BOTS_PACKAGE="com.robocode.bot"
 MAIN_CLASS="com.robocode.App"
-ROBOCODE_JAR_PATH="./lib/robocode-1.9.5.5-setup.jar"
+SETUP_JAR="./lib/robocode-1.9.5.5-setup.jar"
+INSTALLED_JAR="$ROBOCODE_HOME/libs/robocode.jar"
+ROBOCODE_JAR_PATH="$INSTALLED_JAR"
 VERSION="1.9.5.5"
 DOWNLOAD_URL="https://sourceforge.net/projects/robocode/files/robocode/${VERSION}/robocode-${VERSION}-setup.jar/download"
 DEFAULT_OPPONENT="sample.SpinBot"
@@ -39,14 +41,16 @@ done
 download_robocode() {
     info "Descargando Robocode $VERSION..."
     mkdir -p ./lib/
-    if command -v wget &>/dev/null; then
-        wget -O "$ROBOCODE_JAR_PATH" "$DOWNLOAD_URL" || error "Fallo descarga con wget"
-    elif command -v curl &>/dev/null; then
-        curl -L -o "$ROBOCODE_JAR_PATH" "$DOWNLOAD_URL" || error "Fallo descarga con curl"
-    else
-        error "No se encontró wget ni curl. Descarga manual:\n${DOWNLOAD_URL}"
-    fi
+    wget -O "$SETUP_JAR" "$DOWNLOAD_URL" || error "Fallo descarga con wget"
     success "Robocode descargado correctamente"
+}
+
+run_installer_if_needed() {
+    if [ ! -f "$INSTALLED_JAR" ]; then
+        info "Ejecutando instalador de Robocode..."
+        java -jar "$SETUP_JAR" || error "No se pudo ejecutar el instalador"
+        [ ! -f "$INSTALLED_JAR" ] && error "No se encuentra robocode.jar tras la instalación. Instálalo manualmente en $ROBOCODE_HOME"
+    fi
 }
 
 find_robots() {
@@ -68,12 +72,13 @@ find_robots() {
 
 info "Verificando versión de Java..."
 JAVA_VERSION=$(java -version 2>&1 | awk -F[\"\.] '/version/ {print $2}')
-[ "$JAVA_VERSION" -gt 11 ] && warning "Java $JAVA_VERSION detectado. Usa Java 11 para Robocode"
+[ "$JAVA_VERSION" -gt 11 ] && warning "Java $JAVA_VERSION detectado. Se recomienda Java 11"
 
 info "Verificando Robocode..."
-[ ! -f "$ROBOCODE_JAR_PATH" ] && download_robocode
+[ ! -f "$SETUP_JAR" ] && download_robocode
+run_installer_if_needed
 
-info "Instalando robocode.jar en Maven..."
+info "Instalando robocode.jar real en Maven..."
 mvn install:install-file -Dfile="$ROBOCODE_JAR_PATH" \
     -DgroupId=net.sf.robocode -DartifactId=robocode-full -Dversion="$VERSION" \
     -Dpackaging=jar -DgeneratePom=true || error "Fallo al instalar robocode.jar"
@@ -89,6 +94,7 @@ info "Empaquetando bots en ${JAR_BOTS}..."
 jar cf "$JAR_BOTS" -C target/classes . || error "No se pudo crear $JAR_BOTS"
 
 info "Copiando ${JAR_BOTS} a $ROBOCODE_HOME/robots/..."
+mkdir -p "$ROBOCODE_HOME/robots" || error "No se pudo crear el directorio de robots"
 cp "$JAR_BOTS" "$ROBOCODE_HOME/robots/" || error "No se pudo copiar bots.jar"
 
 [ "$LISTAR" = true ] && {
@@ -100,9 +106,9 @@ cp "$JAR_BOTS" "$ROBOCODE_HOME/robots/" || error "No se pudo copiar bots.jar"
 GUI_MODE=true
 [ -z "$DISPLAY" ] && warning "Modo headless" && GUI_MODE=false
 
-ROBOT_CLASSPATH="$ROBOCODE_HOME/libs/*:target/classes:target/robocode-practica-1.0-SNAPSHOT.jar"
+ROBOT_CLASSPATH="$ROBOCODE_JAR_PATH:target/classes:target/robocode-practica-1.0-SNAPSHOT.jar"
 
-# Filtrar si hay bots seleccionados
+# Selección de bots
 BOTS_ELEGIDOS=()
 if [ ${#SELECTED_BOTS[@]} -gt 0 ]; then
     info "Seleccionando bots: ${SELECTED_BOTS[*]}"
@@ -121,7 +127,7 @@ else
     BOTS_ELEGIDOS=("${robot_classes[@]}")
 fi
 
-# Asegurar mínimo 2 bots
+# Asegurar al menos dos bots
 if [ ${#BOTS_ELEGIDOS[@]} -lt 2 ]; then
     BOTS_ELEGIDOS+=("$DEFAULT_OPPONENT")
 fi
